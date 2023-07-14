@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.15)
+
+project(labo03)
+
+# Setup language requirements
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+#--------------------------------------------------
+# Sous MAC, OpenGL est Deprecated, mais toujours
+# fonctionnel, on veut éviter tous les warnings
+# durant la compilation.
+#--------------------------------------------------
+if (APPLE)
+  add_definitions( -DGL_SILENCE_DEPRECATION )
+endif()
+
+# Find OpenGL
+find_package(OpenGL REQUIRED)
+
+find_package(OpenMP REQUIRED)
+
+
+
+# Add .cpp and .h files
+set(HEADERS ParticleSimGLCanvas.h ParticleSimApplication.h ParticleSystem.h Vector2d.h Solvers.hpp)
+set(SOURCE main.cpp ParticleSimApplication.cpp ParticleSimGLCanvas.cpp ParticleSystem.cpp)
+add_executable(labo03 ${SOURCE} ${HEADERS})
+
+target_link_libraries(labo03 labo01 nanogui ${NANOGUI_EXTRA_LIBS})
+
+target_link_libraries(labo03 PRIVATE OpenMP::OpenMP_CXX)
+
+if(MSVC) 
+	set_property(TARGET labo03 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/labo03)
+endif()

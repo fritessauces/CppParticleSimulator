@@ -1,0 +1,167 @@
+#pragma once
+
+/**
+ * @file Solvers.hpp
+ *
+ * @brief Implémentation de plusieurs algorihtmes de solveurs pour un système
+ *        d'équations linéaires
+ *
+ * Nom: Frederic Labelle
+ * Code permanent : LABF11109803
+ * Email : frederic.labelle.3@ens.etsmtl.ca
+ *
+ */
+
+#include "Math3D.h"
+
+namespace gti320
+{
+	// Identification des solveurs
+	enum eSolverType { kNone, kJacobi, kGaussSeidel, kCholesky };
+
+	// Paramètres de convergences pour les algorithmes itératifs
+	static const double epsilon = 1e-4;
+	static const double tau = 1e-5;
+
+
+	/**
+	 * Résout Ax = b avec la méthode de Jacobi
+	 */
+	static void jacobi(const Matrix<double, Dynamic, Dynamic>& A,
+		const Vector<double, Dynamic>& b,
+		Vector<double, Dynamic>& x, int k_max)
+	{
+		// verif carre
+		assert(A.cols() == A.rows());
+
+		// DONE 
+		//
+		// Implémenter la méthode de Jacobi
+		Vector<double, Dynamic> z(A.cols());
+		x.resize(b.rows());
+		for (int i = 0; i < A.cols(); ++i)
+		{
+			z(i) = b(i);
+			for (int j = 0; j < i; ++j)
+			{
+				z(i) -= A(i, j) * x(j);
+			}
+			for (int j = i + 1; j < A.cols(); ++j)
+			{
+				z(i) -= A(i, j) * x(j);
+			}
+			z(i) /= A(i, i);
+		}
+		x = z;
+
+
+		// TODO 
+		//
+		// Faites en sorte que la boucle for principale soit exécutée en
+		// parallèle.
+	}
+
+
+
+	/**
+	 * Résout Ax = b avec la méthode Gauss-Seidel
+	 */
+	static void gaussSeidel(const Matrix<double, Dynamic, Dynamic>& A,
+		const Vector<double, Dynamic>& b,
+		Vector<double, Dynamic>& x, int k_max)
+	{
+		//  verif carre
+		assert(A.cols() == A.rows());
+
+		// DONE
+		//
+		// Implémenter la méthode de Gauss-Seidel
+		x.resize(b.rows());
+		for (int i = 0; i < A.cols(); ++i)
+		{
+			x(i) = b(i);
+			for (int j = 0; j < i; ++j)
+			{
+				x(i) -= A(i, j) * x(j);
+			}
+			for (int j = i + 1; j < A.cols(); ++j)
+			{
+				x(i) -= A(i, j) * x(j);
+			}
+			x(i) /= A(i, i);
+		}
+
+	}
+
+	/**
+	 * Résout Ax = b avec la méthode de Cholesky
+	 */
+	static void cholesky(const Matrix<double, Dynamic, Dynamic>& A,
+		const Vector<double, Dynamic>& b,
+		Vector<double, Dynamic>& x)
+	{
+		assert(A.cols() == A.rows());
+
+		  // DONE 
+		  //
+		  // Calculer la matrice L de la factorisation de Cholesky
+
+
+		Matrix<double, Dynamic, Dynamic> L(A.rows(), A.rows());
+		L.setZero();
+		double sum;
+		for (int i = 0; i < A.rows(); ++i)
+		{
+			for (int j = 0; j <= i; ++j)
+			{
+				sum = 0;
+				for (int k = 0; k < j; ++k)
+				{
+					sum += L(i, k) * L(j, k);
+				}
+
+				if (i == j) // Diago
+				{
+					L(i, j) = sqrt(A(i, i) - sum);
+				}
+				else // Not Diago
+				{
+					L(i, j) = (A(i, j) - sum) / L(j, j);
+				}
+			}
+		}
+
+
+		// DONE
+		//
+		// Résoudre Ly = b
+		Vector<double, Dynamic> y(b.rows());
+		for (int i = 0; i < b.rows(); ++i)
+		{
+			y(i) = b(i);
+			for (int j = 0; j < i; ++j)
+			{
+				y(i) -= L(i, j) * y(j);
+			}
+			y(i) /= L(i, i);
+		}
+
+		// DONE
+		//
+		// Résoudre L^t x = y
+		// 
+		// Remarque : ne pas caculer la transposer de L, c'est inutilement
+		// coûteux.
+		x.resize(L.rows());
+		for (int i = x.rows() - 1; i >= 0; --i)
+		{
+			x(i) = y(i);
+			for (int j = i + 1; j < x.rows(); ++j)
+			{
+				x(i) -= L(j, i) * x(j);
+			}
+			x(i) /= L(i, i);
+		}
+	}
+
+}
